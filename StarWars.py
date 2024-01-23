@@ -1,10 +1,10 @@
-import tkinter as tk
-from tkinter import ttk
 from tkinter import messagebox
 from random import randrange
 from datetime import datetime
 import threading
 import time
+import tkinter as tk
+from tkinter import ttk
 
 
 class Consts:
@@ -20,9 +20,8 @@ class Consts:
 
 class Jet:
     """
-    triangle tha represent my airplane
+    triangle that represent my airplane/jet
     """
-
     def __init__(self, root, canvas, color='green'):
         self._root = root
         self._canvas = canvas
@@ -36,6 +35,10 @@ class Jet:
         return self.jet
 
     def next_color(self):
+        """
+        changes jet colors after collision with enemy
+        :return:
+        """
         self.color_index += 1
         if self.color_index >= len(self.color_list):
             messagebox.showerror('You lose!', 'Your jet will be destroyed!')
@@ -44,24 +47,20 @@ class Jet:
             self._canvas.itemconfig(self.jet, fill=self.color_list[self.color_index])
 
 
-
-
 class Enemy:
     """
     Create an enemy-triangle with the apex downwards
     """
-
     def __init__(self, canvas: tk.Canvas, left_x=30, left_y=30, color='black'):
         self.polygon = canvas.create_polygon(left_x, left_y, left_x + 25, left_y - 20, left_x - 25, left_y - 20,
                                              fill=color)
         self.direction = 1  # from left to right
 
+
 class StarWars:
     """
-    catches the pressed button event
     Star-Wars game, a triangle moved over canvas and shoot on objects that above him
     """
-
     def __init__(self, root):
         self.root = root
         self.root.title("Space Invaders")
@@ -85,15 +84,11 @@ class StarWars:
 
         self.num_of_bullets = Consts.max_bullets
 
-
         self.root.mainloop()
-
 
     # ----------------------------------------------------------------------------------------------------------
 
-
     def create_enemies(self, begin=1, end=20):
-
         for i in range(begin, end):
             self.add_enemy(30 + 60 * i)
 
@@ -115,15 +110,15 @@ class StarWars:
             return ()
         self.num_of_bullets -= 1
         new_bullet = self.canvas.create_oval(0, 0, 5, 15, fill='yellow')
-        self.canvas.move(new_bullet, self.canvas.coords(self.jet())[0], self.canvas.coords(self.jet())[1])
+        self.canvas.move(new_bullet, self.canvas.coords(self.jet())[0],
+                         self.canvas.coords(self.jet())[1])
         self.bullet_list.append(new_bullet)
 
     def move_the_bullet(self):
         """
-        move the bullets shut from jet up over the screen
+        move the bullets shut from jet, up over the screen
         :return:
         """
-
         for bullet in self.bullet_list:
             self.canvas.move(bullet, 0, -Consts.bullet_speed)
             #  up screen reached
@@ -135,10 +130,14 @@ class StarWars:
 
     def add_enemy(self, left_x=30, left_y=30, color='black'):
         new_enemy = Enemy(self.canvas, left_x, left_y)
-        # self.canvas.create_polygon(left_x, left_y, left_x + 25, left_y - 20, left_x - 25, left_y - 20, fill=color)
         self.enemies_list.append(new_enemy)
 
     def enemy_died(self, enemy):
+        """
+        checks if hit by bullet
+        :param enemy:
+        :return:
+        """
         for bullet in self.bullet_list:
             #                           Y1                               Y1                              Y2
             if self.canvas.coords(enemy.polygon)[1] >= self.canvas.coords(bullet)[1] >= \
@@ -151,6 +150,11 @@ class StarWars:
         return False
 
     def jet_collision(self, enemy):
+        """
+        checks if jet collide with enemy
+        :param enemy:
+        :return:
+        """
         #                           Y1                               Y1                              Y2
         if self.canvas.coords(enemy.polygon)[1] >= self.canvas.coords(self.jet())[1] >= \
                 self.canvas.coords(enemy.polygon)[3] and \
@@ -161,6 +165,11 @@ class StarWars:
         return False
 
     def move_enemy(self):
+        """
+        move objects horizontally,
+         drop down to the next line when the end of the screen reached
+        :return:
+        """
         for enemy in self.enemies_list:
             enemy: Enemy
             self.jet_collision(enemy)
@@ -184,17 +193,17 @@ class StarWars:
                 messagebox.showerror("Mission Failed", "The enemy reached the screen button!")
                 return ()
 
-
             if self.enemy_died(enemy):
                 self.enemies_list.remove(enemy)
                 self.canvas.delete(enemy.polygon)
-
-
 
         self.root.after(Consts.enemy_wait, lambda: self.move_enemy())
 
 
 class TkinterGames:
+    """
+    Creates a graphic window with a menu for selecting games
+    """
     def __init__(self, game_selected="Clicker"):
         """
         constructor, builds the main window with the menus and "Click Me" button
@@ -214,7 +223,6 @@ class TkinterGames:
 
         self.create_choose_game_menu()
         self.stopper_label = tk.Label(self.root, text="00:00:00")
-
 
         # Star Wars game started
         if self.selected_game == "Star Wars":
@@ -239,6 +247,10 @@ class TkinterGames:
         self.add_choices_to_menu()
 
     def stop_watch(self):
+        """
+        creating stopper label inside the window to display seconds from game beginning
+        :return:
+        """
         self.milliseconds += 1
         self.stopper_label.after(100, self.stop_watch)
         minutes = self.milliseconds // 600
@@ -316,14 +328,12 @@ class TkinterGames:
             self.root.destroy()
             self.__init__("Star Wars")
 
-
         elif choice == "Reset Score":
             self.selected_game = "Reset Score"
             self.reset_button_click()
 
     def reset_timer(self):
         self.milliseconds = 0
-
 
     def add_choices_to_menu(self):
         # Add choices to the "choose_game" menu
@@ -337,6 +347,5 @@ class TkinterGames:
         # ============= end of "Game Menu"==========================================================
 
 
-create_window = TkinterGames()
-
-
+if name == "main":
+    create_window = TkinterGames()
