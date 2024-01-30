@@ -11,11 +11,33 @@ class Consts:
     """
     constant values for Star_wars class
     """
-    jet_speed = 30
-    bullet_speed = 10
-    enemy_wait = 10  # millisecond
-    enemy_jump = 100
     max_bullets = 50
+    bullet_speed = 10
+    bullet_x0 = 0
+    bullet_y0 = 0
+    bullet_x1 = 5
+    bullet_y1 = 15
+    bullet_color = 'yellow'
+
+    enemy_wait = 15  # millisecond
+    enemy_jump = 100
+    enemy_color = 'black'
+    enemy_start_x = 30
+    enemy_start_y = 30
+    enemy_wing_size = 25
+    enemy_height = 20
+    enemy_max_num = 25
+    enemy_screen_bottom_title = "Mission Failed"
+    enemy_screen_bottom_message = "The enemy reached the screen bottom!"
+
+    jet_position_height_correction = 130
+    jet_speed = 30
+    jet_wing_size = 50
+    jet_height = 50
+    jet_collision_title = 'You lose!'
+    jet_collision_message = 'Your collided with enemies, the jet will be destroyed!'
+
+    star_wars_title = "Space Invaders"
 
 
 class Jet:
@@ -28,8 +50,12 @@ class Jet:
         self._color = color
         self.color_index = -1
         self.color_list = ['pink', 'pink', 'red', 'red', 'yellow', 'yellow']
-        self.jet = canvas.create_polygon(root.winfo_screenheight() / 2, 700, root.winfo_screenheight() / 2
-                                         + 50, 750, root.winfo_screenheight() / 2 - 50, 750, fill=color)
+        y1 = root.winfo_screenheight() - Consts.jet_position_height_correction
+        x1 = root.winfo_screenwidth() // 2
+        self.jet = canvas.create_polygon(x1, y1, x1 + Consts.jet_wing_size,
+                                         y1 + Consts.jet_height,
+                                         x1 - Consts.jet_wing_size, y1 + Consts.jet_height,
+                                         fill=color)
 
     def __call__(self):
         return self.jet
@@ -41,7 +67,7 @@ class Jet:
         """
         self.color_index += 1
         if self.color_index >= len(self.color_list):
-            messagebox.showerror('You lose!', 'Your jet will be destroyed!')
+            messagebox.showerror(Consts.jet_collision_title, Consts.jet_collision_message)
             self._canvas.delete(self.jet)
         else:
             self._canvas.itemconfig(self.jet, fill=self.color_list[self.color_index])
@@ -51,10 +77,16 @@ class Enemy:
     """
     Create an enemy-triangle with the apex downwards
     """
-    def __init__(self, canvas: tk.Canvas, left_x=30, left_y=30, color='black'):
-        self.polygon = canvas.create_polygon(left_x, left_y, left_x + 25, left_y - 20, left_x - 25, left_y - 20,
+    def __init__(self, canvas: tk.Canvas, left_x=Consts.enemy_start_x,
+                 left_y=Consts.enemy_start_y, color=Consts.enemy_color):
+        self.polygon = canvas.create_polygon(left_x, left_y,
+                                             left_x + Consts.enemy_wing_size,
+                                             left_y - Consts.enemy_height,
+                                             left_x - Consts.enemy_wing_size,
+                                             left_y - Consts.enemy_height,
                                              fill=color)
-        self.direction = 1  # from left to right
+        # from left to right
+        self.direction = 1
 
 
 class StarWars:
@@ -63,9 +95,10 @@ class StarWars:
     """
     def __init__(self, root):
         self.root = root
-        self.root.title("Space Invaders")
+        self.root.title(Consts.star_wars_title)
         self.after_flag = False
-        self.canvas = tk.Canvas(self.root, width=root.winfo_screenwidth(), height=root.winfo_screenheight())
+        self.canvas = tk.Canvas(self.root, width=root.winfo_screenwidth(),
+                                height=root.winfo_screenheight())
         self.canvas.pack()
 
         self.jet = Jet(root=self.root, canvas=self.canvas, color='blue')
@@ -78,7 +111,7 @@ class StarWars:
 
         self.move_the_bullet()
 
-        self.create_enemies(1, 25)
+        self.create_enemies(1, Consts.enemy_max_num)
 
         self.move_enemy()
 
@@ -90,9 +123,14 @@ class StarWars:
 
     def create_enemies(self, begin=1, end=20):
         for i in range(begin, end):
-            self.add_enemy(30 + 60 * i)
+            self.add_enemy(Consts.enemy_start_x + Consts.enemy_wing_size * 2 * i)
 
     def key_event(self, event):
+        """
+        Controlling the jet with keyboard
+        :param event:
+        :return:
+        """
         key = event.keysym
         if key == 'Up':
             self.canvas.move(self.jet(), 0, -Consts.jet_speed)  # Move the triangle up
@@ -106,12 +144,19 @@ class StarWars:
             self.bullet()
 
     def bullet(self):
+        """
+        Creates the bullet on the jet apex
+        :return: returns 0 if out of bullets
+        """
         if self.num_of_bullets == 0:
             return ()
         self.num_of_bullets -= 1
-        new_bullet = self.canvas.create_oval(0, 0, 5, 15, fill='yellow')
-        self.canvas.move(new_bullet, self.canvas.coords(self.jet())[0],
-                         self.canvas.coords(self.jet())[1])
+        new_bullet = self.canvas.create_oval(Consts.bullet_x0, Consts.bullet_y0,
+                                             Consts.bullet_x1, Consts.bullet_y1,
+                                             fill=Consts.bullet_color)
+        jet_x1 = self.canvas.coords(self.jet())[0]
+        jet_y1 = self.canvas.coords(self.jet())[1]
+        self.canvas.move(new_bullet, jet_x1, jet_y1)
         self.bullet_list.append(new_bullet)
 
     def move_the_bullet(self):
@@ -121,15 +166,16 @@ class StarWars:
         """
         for bullet in self.bullet_list:
             self.canvas.move(bullet, 0, -Consts.bullet_speed)
-            #  up screen reached
+            #                   up screen reached
             if self.canvas.coords(bullet)[1] < 1:
                 self.bullet_list.remove(bullet)
                 self.canvas.delete(bullet)
         # Sleep
         self.root.after(Consts.enemy_wait, lambda: self.move_the_bullet())
 
-    def add_enemy(self, left_x=30, left_y=30, color='black'):
-        new_enemy = Enemy(self.canvas, left_x, left_y)
+    def add_enemy(self, left_x=Consts.enemy_start_x, left_y=Consts.enemy_start_y,
+                  color=Consts.enemy_color):
+        new_enemy = Enemy(self.canvas, left_x, left_y, color)
         self.enemies_list.append(new_enemy)
 
     def enemy_died(self, enemy):
@@ -138,12 +184,17 @@ class StarWars:
         :param enemy:
         :return:
         """
+
         for bullet in self.bullet_list:
-            #                           Y1                               Y1                              Y2
-            if self.canvas.coords(enemy.polygon)[1] >= self.canvas.coords(bullet)[1] >= \
-                    self.canvas.coords(enemy.polygon)[3] and \
-                    self.canvas.coords(enemy.polygon)[0] <= self.canvas.coords(bullet)[0] <= \
-                    self.canvas.coords(enemy.polygon)[2]:
+            enemy_x1 = self.canvas.coords(enemy.polygon)[0]
+            enemy_x2 = self.canvas.coords(enemy.polygon)[2]
+            enemy_y1 = self.canvas.coords(enemy.polygon)[1]
+            enemy_y2 = self.canvas.coords(enemy.polygon)[3]
+            bullet_x1 = self.canvas.coords(bullet)[0]
+            bullet_y1 = self.canvas.coords(bullet)[1]
+
+            if enemy_y1 >= bullet_y1 >= enemy_y2 and \
+                    enemy_x1 <= bullet_x1 <= enemy_x2:
                 self.canvas.delete(bullet)
                 self.bullet_list.remove(bullet)
                 return True
@@ -190,7 +241,7 @@ class StarWars:
             else:
                 bottom = self.root.winfo_screenheight()
             if self.canvas.coords(enemy.polygon)[1] > bottom:
-                messagebox.showerror("Mission Failed", "The enemy reached the screen button!")
+                messagebox.showerror(Consts.enemy_screen_bottom_title, Consts.enemy_screen_bottom_message)
                 return ()
 
             if self.enemy_died(enemy):
