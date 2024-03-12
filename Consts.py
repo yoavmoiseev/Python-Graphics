@@ -54,9 +54,13 @@ class Consts:
         first_game_name = "Clicker"
         second_game_name = "Catch the button"
         third_game_name = "Space Invaders"
+        level_started_message = " level started"
+        level_completed_message = " level successfully complete!"
+        level_failed_message = " level failed!!! Starting same level again!"
         first_game_button_text = "Click me"
         second_game_button_text = "Catch Me"
         timer_label = "Timer"
+        level_label = "Level-"
         timer_centering_parameter = 4
         timer_index = 3
         timer_wait = 100

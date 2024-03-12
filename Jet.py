@@ -1,6 +1,7 @@
 from Consts import *
 from tkinter import messagebox
 
+
 class Jet:
     """
     triangle that represent the player airplane/jet
@@ -29,8 +30,6 @@ class Jet:
         """
         self.color_index += 1
         if self.color_index >= len(self.color_list):
-            messagebox.showerror(Consts.Jet.collision_title, Consts.Jet.collision_message)
-            self._canvas.delete(self.jet)
             return -1
         else:
             self._canvas.itemconfig(self.jet, fill=self.color_list[self.color_index])

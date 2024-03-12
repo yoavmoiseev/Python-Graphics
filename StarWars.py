@@ -1,10 +1,11 @@
 import tkinter as tk
 from tkinter import messagebox
+import winsound
+import logging
+
 from Consts import *
 from Jet import *
 from Enemy import *
-import winsound
-import logging
 
 
 class StarWars:
@@ -12,14 +13,24 @@ class StarWars:
     Star-Wars game, a triangle moved over canvas and shoots on objects that above him
     """
 
-    def __init__(self, root, menu_bar_counter):
+    def __init__(self, root, menu_bar, callback, level):
+
         self.root = root
+        self.callback = callback
+        self.level = level
         self.root.title(Consts.TkinterGames.third_game_name)
         self.after_flag = False
         self.canvas = tk.Canvas(self.root, width=root.winfo_screenwidth(),
                                 height=root.winfo_screenheight())
         self.canvas.pack()
-        self.label_counter = menu_bar_counter
+
+        self.num_of_bullets = Consts.Bullet.max - self.level * 2
+        menu_bar.add_command(label=Consts.TkinterGames.third_game_label
+                             + str(self.num_of_bullets), state=tk.DISABLED)
+        self.menu_bar = menu_bar
+
+        self.level_label = menu_bar.add_command(label=Consts.TkinterGames.level_label
+                                                + str(level), state=tk.DISABLED)
 
         self.jet = Jet(root=self.root, canvas=self.canvas, color=Consts.Jet.color)
 
@@ -27,9 +38,7 @@ class StarWars:
         self.enemies_list = []
 
         # Bind key presses to the key_event function
-        self.root.bind(Consts.StarWars.key_event, self.key_event)
-
-        self.num_of_bullets = Consts.Bullet.max
+        self.key_event_id = self.root.bind(Consts.StarWars.key_event, self.key_event)
 
         self.move_the_bullet()
 
@@ -44,6 +53,19 @@ class StarWars:
     def create_enemies(self, begin=1, end=20):
         for i in range(begin, end):
             self.add_enemy(Consts.Enemy.start_x + Consts.Enemy.wing_size * 2 * i * Consts.Enemy.distance)
+
+    def clear_screen_objects(self):
+        for bullet in self.bullet_list:
+            self.canvas.delete(bullet)
+
+        for enemy in self.enemies_list:
+            self.canvas.delete(enemy())
+
+        if self.jet is not None:
+            self.canvas.delete(self.jet())
+
+        # Bind key presses to the key_event function
+        self.root.unbind(Consts.StarWars.key_event, self.key_event_id)
 
     def key_event(self, event):
         """
@@ -61,8 +83,9 @@ class StarWars:
             self.canvas.move(self.jet(), -Consts.Jet.speed, 0)
         elif key == Consts.StarWars.move_right_key:
             self.canvas.move(self.jet(), Consts.Jet.speed, 0)
+
         elif key == Consts.StarWars.shoot_key:
-            self.bullet(self.label_counter,
+            self.bullet(self.menu_bar,
                         Consts.TkinterGames.third_game_index)
 
     def bullet(self, menu_label_counter, label_index):
@@ -74,9 +97,8 @@ class StarWars:
             return 0
 
         self.num_of_bullets -= 1
-        menu_label_counter.entryconfig(label_index,
-                                       label=Consts.TkinterGames.third_game_label
-                                             + str(self.num_of_bullets))
+        menu_label_counter.entryconfig(label_index, label=Consts.TkinterGames.third_game_label
+                                       + str(self.num_of_bullets))
 
         # The first argument is the frequency, and the second is the duration in milliseconds
         winsound.PlaySound(Consts.Sound.shoot_file_name, 1)
@@ -97,14 +119,18 @@ class StarWars:
         move the bullets shut from jet, up over the screen
         :return:
         """
-        for bullet in self.bullet_list:
-            self.canvas.move(bullet, 0, -Consts.Bullet.speed)
+        try:
+            for bullet in self.bullet_list:
+                self.canvas.move(bullet, 0, -Consts.Bullet.speed)
 
-            y1 = self.canvas.coords(bullet)[1]
-            # up screen reached
-            if y1 < 1:
-                self.bullet_list.remove(bullet)
-                self.canvas.delete(bullet)
+                y1 = self.canvas.coords(bullet)[1]
+                # up screen reached
+                if y1 < 1:
+                    self.bullet_list.remove(bullet)
+                    self.canvas.delete(bullet)
+        except Exception as exc_type:
+            logging.exception(f"{type(exc_type).__name__}: {exc_type}")
+
         # Sleep
         self.root.after(Consts.Enemy.wait, lambda: self.move_the_bullet())
 
@@ -159,8 +185,6 @@ class StarWars:
             enemy_y1 = self.canvas.coords(enemy.polygon)[1]
             enemy_x2 = self.canvas.coords(enemy.polygon)[2]
             enemy_y2 = self.canvas.coords(enemy.polygon)[3]
-            enemy_x3 = self.canvas.coords(enemy.polygon)[4]
-            enemy_y3 = self.canvas.coords(enemy.polygon)[5]
 
             jet_x1 = self.canvas.coords(self.jet())[0]
             jet_y1 = self.canvas.coords(self.jet())[1]
@@ -195,21 +219,25 @@ class StarWars:
                 winsound.PlaySound(Consts.Sound.jet_injured_file_name, 1)
                 #            the jet destroyed
                 if self.jet.next_color() == -1:
+                    self.clear_screen_objects()
+                    messagebox.showerror(Consts.Jet.collision_title, Consts.Jet.collision_message)
                     logging.info(Consts.Log.game_over)
-                    return 0  # Stop moving enemies
-
+                    return self.callback('jet_collided')
             try:
                 enemy_x1 = self.canvas.coords(enemy.polygon)[0]
                 # right window corner reached
                 if enemy_x1 >= self.root.winfo_width() - Consts.Others.screen_correction_y:
                     enemy.direction = -1
-                    self.canvas.move(enemy.polygon, (-Consts.Enemy.speed), Consts.Enemy.jump)
+                    self.canvas.move(enemy.polygon, (-Consts.Enemy.speed) - self.level * 2,
+                                     Consts.Enemy.jump)
                 # left window corner reached
                 elif enemy_x1 <= Consts.Others.screen_correction_y:
                     enemy.direction = 1
-                    self.canvas.move(enemy.polygon, Consts.Enemy.speed, Consts.Enemy.jump)
+                    self.canvas.move(enemy.polygon, Consts.Enemy.speed + self.level * 2,
+                                     Consts.Enemy.jump)
                 else:
-                    self.canvas.move(enemy.polygon, Consts.Enemy.speed * enemy.direction, 0)
+                    self.canvas.move(enemy.polygon, (Consts.Enemy.speed + self.level * 2)
+                                     * enemy.direction, 0)
 
                 #  if the winfo_height() returns correct values?
                 #  returns 1 when used immediately after canvas creation,
@@ -218,13 +246,14 @@ class StarWars:
                     bottom = self.canvas.winfo_height()
                 else:
                     bottom = self.root.winfo_screenheight()
-                    # logging.warning(Consts.log_win_info)
 
                 enemy_y1 = self.canvas.coords(enemy.polygon)[1]
                 # screen bottom reached
                 if enemy_y1 > bottom:
-                    messagebox.showerror(Consts.Enemy.screen_bottom_title, Consts.Enemy.screen_bottom_message)
-                    return ()
+                    self.clear_screen_objects()
+                    messagebox.showerror(Consts.Enemy.screen_bottom_title,
+                                         Consts.Enemy.screen_bottom_message)
+                    return self.callback("same_level")
 
                 if self.died(enemy):
                     self.enemies_list.remove(enemy)
@@ -233,4 +262,10 @@ class StarWars:
             except Exception as exc_type:
                 logging.exception(f"{type(exc_type).__name__}: {exc_type}")
 
+        if len(self.enemies_list) == 0:
+            self.clear_screen_objects()
+            self.callback('next')
+
         self.root.after(Consts.Enemy.wait, lambda: self.move_enemy())
+
+

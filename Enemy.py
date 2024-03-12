@@ -1,6 +1,7 @@
 from Consts import *
 import tkinter as tk
 
+
 class Enemy:
     """
     Create an enemy-triangle with the apex downwards
@@ -16,3 +17,6 @@ class Enemy:
                                              fill=color)
         # from left to right
         self.direction = 1
+
+    def __call__(self):
+        return self.polygon
