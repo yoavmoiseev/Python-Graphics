@@ -87,9 +87,9 @@ class Consts:
         shoot_key = 'space'
 
     class Sound:
-        shoot_file_name = "shoot.wav"
-        exploded_file_name = "enemy_exploded.wav"
-        jet_injured_file_name = "jet-injured.wav"
+        shoot_file_name = "sounds/shoot.wav"
+        exploded_file_name = "sounds/enemy_exploded.wav"
+        jet_injured_file_name = "sounds/jet-injured.wav"
 
     class Others:
         screen_correction_y = 40
