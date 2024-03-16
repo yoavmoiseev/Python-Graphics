@@ -1,4 +1,5 @@
 import logging
+import tkinter
 from tkinter import messagebox
 from random import randrange
 from datetime import datetime
@@ -35,7 +36,10 @@ class TkinterGames:
 
         self.root = tk.Tk()
         self.root.title(game_selected)
-        self.root.wm_state(Consts.TkinterGames.window_state)
+        try:
+            self.root.wm_state(Consts.TkinterGames.window_state)
+        except tkinter.TclError:  # we are not in windows
+            self.root.attributes('-zoomed', True)
 
         self.menu_bar = tk.Menu(self.root)
         self.root.config(menu=self.menu_bar)
