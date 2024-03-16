@@ -1,17 +1,9 @@
-import logging
 import tkinter
-from tkinter import messagebox
 from random import randrange
-from datetime import datetime
-import threading
-import time
-import tkinter as tk
 
-from Consts import *
-from Jet import *
-from StarWars import *
-from Enemy import *
 import sound
+from Enemy import *
+from StarWars import *
 
 
 class TkinterGames:

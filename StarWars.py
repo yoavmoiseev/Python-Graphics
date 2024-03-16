@@ -1,11 +1,8 @@
-import tkinter as tk
-from tkinter import messagebox
 import logging
 
 import sound
-from Consts import *
-from Jet import *
 from Enemy import *
+from Jet import *
 
 
 class StarWars:
