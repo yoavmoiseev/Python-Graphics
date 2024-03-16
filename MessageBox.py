@@ -1,5 +1,4 @@
 import tkinter as tk
-from Consts import *
 
 
 class MessageBox:

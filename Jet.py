@@ -1,4 +1,4 @@
-from Consts import *
+import consts
 from tkinter import messagebox
 
 
@@ -12,12 +12,12 @@ class Jet:
         self._canvas = canvas
         self._color = color
         self.color_index = -1
-        self.color_list = Consts.Jet.collision_colors_list
-        y1 = root.winfo_screenheight() - Consts.Jet.position_height_correction
+        self.color_list = consts.Jet.collision_colors_list
+        y1 = root.winfo_screenheight() - consts.Jet.position_height_correction
         x1 = root.winfo_screenwidth() // 2
-        self.jet = canvas.create_polygon(x1, y1, x1 + Consts.Jet.wing_size,
-                                         y1 + Consts.Jet.height,
-                                         x1 - Consts.Jet.wing_size, y1 + Consts.Jet.height,
+        self.jet = canvas.create_polygon(x1, y1, x1 + consts.Jet.wing_size,
+                                         y1 + consts.Jet.height,
+                                         x1 - consts.Jet.wing_size, y1 + consts.Jet.height,
                                          fill=color)
 
     def __call__(self):
