@@ -16,9 +16,6 @@ class TkinterGames:
         """
         constructor, builds the main window with the menus and "Click Me" button
         """
-        logging.basicConfig(filename=consts.Log.file, level=logging.DEBUG,
-                            format='%(levelname)s - %(asctime)s - %(message)s',
-                            datefmt='%Y-%m-%d %H:%M:%S')
         logging.info(game_selected + consts.Log.suffix)
 
         self.choose_game_menu = game_selected
@@ -179,4 +176,8 @@ class TkinterGames:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(filename=consts.Log.file, level=logging.DEBUG,
+                        format='%(levelname)s - %(asctime)s - %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S')
+
     create_window = TkinterGames()
