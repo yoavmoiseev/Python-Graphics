@@ -10,6 +10,7 @@ from Consts import *
 from Jet import *
 from StarWars import *
 from Enemy import *
+import sound
 
 
 class TkinterGames:
@@ -141,7 +142,8 @@ class TkinterGames:
 
         self.catch_me_button.place(x=randrange(self.root.winfo_width() - self.catch_me_button.winfo_width()),
                                    y=randrange(self.root.winfo_height()) - self.catch_me_button.winfo_height())
-        winsound.Beep(Consts.TkinterGames.button_beep_frequency, Consts.TkinterGames.button_beep_duration)
+        sound.beep(Consts.TkinterGames.button_beep_frequency, Consts.TkinterGames.button_beep_duration)
+
 
     # =========================Start of "Game Menu"===================================================
     # Function to be called when a menu item is selected

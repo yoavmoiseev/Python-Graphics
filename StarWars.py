@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
-import winsound
 import logging
 
+import sound
 from Consts import *
 from Jet import *
 from Enemy import *
@@ -100,8 +100,7 @@ class StarWars:
         menu_label_counter.entryconfig(label_index, label=Consts.TkinterGames.third_game_label
                                        + str(self.num_of_bullets))
 
-        # The first argument is the frequency, and the second is the duration in milliseconds
-        winsound.PlaySound(Consts.Sound.shoot_file_name, 1)
+        sound.play_sound(Consts.Sound.shoot_file_name, 1)
 
         new_bullet = self.canvas.create_oval(Consts.Bullet.x0, Consts.Bullet.y0,
                                              Consts.Bullet.x1, Consts.Bullet.y1,
@@ -216,7 +215,7 @@ class StarWars:
         """
         for enemy in self.enemies_list:
             if self.jet_collided(enemy):
-                winsound.PlaySound(Consts.Sound.jet_injured_file_name, 1)
+                sound.play_sound(Consts.Sound.jet_injured_file_name, 1)
                 #            the jet destroyed
                 if self.jet.next_color() == -1:
                     self.clear_screen_objects()
@@ -258,7 +257,7 @@ class StarWars:
                 if self.died(enemy):
                     self.enemies_list.remove(enemy)
                     self.canvas.delete(enemy.polygon)
-                    winsound.PlaySound(Consts.Sound.exploded_file_name, 1)
+                    sound.play_sound(Consts.Sound.exploded_file_name, 1)
             except Exception as exc_type:
                 logging.exception(f"{type(exc_type).__name__}: {exc_type}")
 
