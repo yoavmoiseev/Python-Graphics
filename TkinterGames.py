@@ -3,7 +3,6 @@ from random import randrange
 
 import sound
 import consts
-from Enemy import *
 from StarWars import *
 
 
@@ -18,7 +17,6 @@ class TkinterGames:
         """
         logging.info(game_selected + consts.Log.suffix)
 
-        self.choose_game_menu = game_selected
         self.selected_game = game_selected
         self.color_index = 0
         self.all_colors = consts.TkinterGames.all_colors
@@ -31,10 +29,13 @@ class TkinterGames:
         except tkinter.TclError:  # we are not in windows
             self.root.attributes('-zoomed', True)
 
+        # menu
         self.menu_bar = tk.Menu(self.root)
         self.root.config(menu=self.menu_bar)
-
-        self.create_choose_game_menu()
+        self.choose_game_menu = tk.Menu(self.menu_bar, tearoff=0)
+        self.menu_bar.add_cascade(label=consts.TkinterGames.choose_game_label,
+                                  menu=self.choose_game_menu)
+        self.add_choices_to_menu()
 
         # shifting the stopper to the middle
         shift = self.root.winfo_screenheight() // consts.TkinterGames.timer_centering_parameter
@@ -50,8 +51,7 @@ class TkinterGames:
 
         # Star Wars game started
         if self.selected_game == consts.TkinterGames.third_game_name:
-            self.menu_bar.add_command(label=consts.TkinterGames.third_game_label
-                                            + str(consts.Bullet.max), state=tk.DISABLED)
+            self.menu_bar.add_command(label=consts.TkinterGames.third_game_label + str(consts.Bullet.max), state=tk.DISABLED)
             StarWars(self.root, self.menu_bar)
         else:
             self.create_catch_me_button()
@@ -64,15 +64,6 @@ class TkinterGames:
         logging.info(consts.TkinterGames.title + consts.Log.window_destroyed)
         self.menu_bar.after_cancel(self.after_id)
         self.root.destroy()  # Close the window
-
-    def create_choose_game_menu(self):
-        """
-        :return:
-        """
-        # Create a "Choose Game" menu
-        self.choose_game_menu = tk.Menu(self.menu_bar, tearoff=0)
-        self.menu_bar.add_cascade(label=consts.TkinterGames.choose_game_label, menu=self.choose_game_menu)
-        self.add_choices_to_menu()
 
     def stop_watch(self):
         """
@@ -107,7 +98,8 @@ class TkinterGames:
         elif self.selected_game == consts.TkinterGames.second_game_name:
             button_text = consts.TkinterGames.second_game_button_text
 
-        self.catch_me_button = tk.Button(self.root, text=button_text, command=self.on_button_click)
+        self.catch_me_button = tk.Button(self.root, text=button_text,
+                                         command=self.on_button_click)
         self.catch_me_button.pack(pady=20)
 
     # Function to be called when the button is clicked
@@ -138,41 +130,28 @@ class TkinterGames:
                                    y=randrange(self.root.winfo_height()) - self.catch_me_button.winfo_height())
         sound.beep(consts.TkinterGames.button_beep_frequency, consts.TkinterGames.button_beep_duration)
 
-
-    # =========================Start of "Game Menu"===================================================
     # Function to be called when a menu item is selected
     def menu_choice(self, choice):
-        """
-            function to start the games according to selection in menu
-            :param choice:
-            :return:
-            """
-        if choice == consts.TkinterGames.first_game_name:
-            logging.info(self.root.title() + consts.Log.window_destroyed)
-            self.close_main_window()
-            self.__init__(consts.TkinterGames.first_game_name)
-        elif choice == consts.TkinterGames.second_game_name:
-            logging.info(self.root.title() + consts.Log.window_destroyed)
-            self.close_main_window()
-            self.__init__(consts.TkinterGames.second_game_name)
-        elif choice == consts.TkinterGames.third_game_name:
-            logging.info(self.root.title() + consts.Log.window_destroyed)
-            self.close_main_window()
-            self.__init__(consts.TkinterGames.third_game_name)
+        logging.info(self.root.title() + consts.Log.window_destroyed)
+        self.close_main_window()
+        logging.info("This is the choice %s", choice)
+        self.__init__(choice)
 
     def reset_timer(self):
         self.milliseconds = 0
 
     def add_choices_to_menu(self):
-        # Add choices to the "choose_game" menu
-        self.choose_game_menu.add_command(label=consts.TkinterGames.first_game_name,
-                                          command=lambda: self.menu_choice(consts.TkinterGames.first_game_name))
-        self.choose_game_menu.add_command(label=consts.TkinterGames.second_game_name,
-                                          command=lambda: self.menu_choice(consts.TkinterGames.second_game_name))
-        self.choose_game_menu.add_command(label=consts.TkinterGames.third_game_name,
-                                          command=lambda: self.menu_choice(consts.TkinterGames.third_game_name))
+        game_names = [consts.TkinterGames.first_game_name,
+                      consts.TkinterGames.second_game_name,
+                      consts.TkinterGames.third_game_name]
+
+        def make_menu_command(cmd):
+            return lambda: self.menu_choice(cmd)
+
+        for game_name in game_names:
+            self.choose_game_menu.add_command(
+                label=game_name, command=make_menu_command(game_name))
         self.choose_game_menu.add_separator()  # Add a separator line
-        # ============= end of "Game Menu"==========================================================
 
 
 if __name__ == "__main__":
