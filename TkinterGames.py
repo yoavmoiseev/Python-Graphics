@@ -16,6 +16,7 @@ class TkinterGames:
     """
     Creates a graphic window with a menu for selecting games
     """
+    star_wars_level = 1
 
     def __init__(self, game_selected=Consts.TkinterGames.default_game):
         """
@@ -54,16 +55,34 @@ class TkinterGames:
         self.root.protocol(Consts.TkinterGames.close_window, self.close_main_window)
 
         # Star Wars game started
-        if self.selected_game == Consts.TkinterGames.third_game_name:
-            self.menu_bar.add_command(label=Consts.TkinterGames.third_game_label
-                                            + str(Consts.Bullet.max), state=tk.DISABLED)
-            StarWars(self.root, self.menu_bar)
+        if self.selected_game == Consts.TkinterGames.third_game_name:            
+            StarWars(self.root, self.menu_bar, self.star_wars_next_level, TkinterGames.star_wars_level)
         else:
             self.create_catch_me_button()
             self.catch_me_button.bind(Consts.TkinterGames.button_event_type, self.on_mouse_on)
 
         # Only commands up here will be displayed/executed
         self.root.mainloop()
+
+    def star_wars_next_level(self, level):
+        if level == 'next':
+            messagebox.showerror(str(TkinterGames.star_wars_level) + Consts.TkinterGames.level_completed_message,
+                                 str(TkinterGames.star_wars_level) + Consts.TkinterGames.level_completed_message)
+            messagebox.showerror(str(TkinterGames.star_wars_level) + Consts.TkinterGames.level_completed_message,
+                                 str(TkinterGames.star_wars_level) + Consts.TkinterGames.level_completed_message)
+            TkinterGames.star_wars_level += 1
+            logging.info(self.root.title() + Consts.TkinterGames.third_game_name +
+                         str(TkinterGames.star_wars_level) +
+                         Consts.TkinterGames.level_started_message)
+        else:
+            messagebox.showerror(str(TkinterGames.star_wars_level) + Consts.TkinterGames.level_failed_message,
+                                 str(TkinterGames.star_wars_level) + Consts.TkinterGames.level_failed_message)
+            logging.info(self.root.title() + Consts.TkinterGames.third_game_name +
+                         str(TkinterGames.star_wars_level) +
+                         Consts.TkinterGames.level_started_message)
+
+        self.close_main_window()
+        self.__init__(Consts.TkinterGames.third_game_name)
 
     def close_main_window(self):
         logging.info(Consts.TkinterGames.title + Consts.Log.window_destroyed)
