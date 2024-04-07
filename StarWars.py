@@ -40,6 +40,12 @@ class StarWars:
         self.enemies_list = []
         self.bomb_list = []
 
+        if self.level == 1:
+            self.root.update()  # ensures that pending events, including event bindings, are processed before the
+            # messagebox is shown
+            messagebox.showinfo(Consts.StarWars.game_instructions_title,
+                                Consts.StarWars.game_instructions)
+
         # Bind key presses to the key_event function
         self.key_event_id = self.root.bind(Consts.StarWars.key_event, self.key_event)
 
@@ -105,7 +111,6 @@ class StarWars:
         menu_label_counter.entryconfig(label_index, label=Consts.TkinterGames.third_game_label
                                        + str(self.num_of_bullets))
 
-        # The first argument is the frequency, and the second is the duration in milliseconds
         winsound.PlaySound(Consts.Sound.shoot_file_name, 1)
 
         new_bullet = self.canvas.create_oval(Consts.Bullet.x0, Consts.Bullet.y0,

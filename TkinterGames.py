@@ -56,10 +56,6 @@ class TkinterGames:
 
         # Star Wars game started
         if self.selected_game == Consts.TkinterGames.third_game_name:
-            """
-            if self.star_wars_level == 1:
-                messagebox.showinfo(Consts.StarWars.game_instructions_title,
-                                    Consts.StarWars.game_instructions)"""
             StarWars(self.root, self.menu_bar, self.star_wars_next_level, TkinterGames.star_wars_level)
         else:
             self.create_catch_me_button()

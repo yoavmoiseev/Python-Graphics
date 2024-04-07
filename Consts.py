@@ -97,8 +97,9 @@ class Consts:
         move_right_key = 'Right'
         shoot_key = 'space'
         game_instructions_title = "Game Instructions"
-        game_instructions = "move: arrow keys, shoot- space.\n You can destroy enemies by collide them. " \
-                            "\n You have 6 lives per level"
+        game_instructions = "Move: arrow keys, Shoot: space." \
+                            "\nYou can destroy enemies by collide them." \
+                            "\nYou have 6 lives per level"
 
     class Sound:
         shoot_file_name = "shoot.wav"
