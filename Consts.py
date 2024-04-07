@@ -15,18 +15,29 @@ class Consts:
         beep_frequency = 6000
         beep_duration = 5
 
+    class Bomb:
+        random = 5
+        speed = 5
+        x0 = 0
+        y0 = 0
+        x1 = 40
+        y1 = 10
+        color = 'red'
+        beep_frequency = 4000
+        beep_duration = 7
+
     class Enemy:
         # Enemy values
-        wait = 15  # millisecond
-        speed = 20
-        jump = 90
+        wait = 10  # millisecond
+        speed = 7
+        jump = 30  # change to- 29 on laptop
         color = 'black'
         start_x = 30
         start_y = 30
         wing_size = 25
         height = 20
         distance = 2
-        max_num = 14
+        max_num = 13
         screen_bottom_title = "Mission Failed"
         screen_bottom_message = "The enemy reached the screen bottom!"
 
@@ -34,7 +45,7 @@ class Consts:
         # Jet values
         position_height_correction = 130
         color = 'blue'
-        speed = 30
+        speed = 30  # change to- 29 on laptop
         wing_size = 40
         height = 25
         collision_title = 'You lose!'
@@ -85,6 +96,9 @@ class Consts:
         move_left_key = 'Left'
         move_right_key = 'Right'
         shoot_key = 'space'
+        game_instructions_title = "Game Instructions"
+        game_instructions = "move: arrow keys, shoot- space.\n You can destroy enemies by collide them. " \
+                            "\n You have 6 lives per level"
 
     class Sound:
         shoot_file_name = "shoot.wav"

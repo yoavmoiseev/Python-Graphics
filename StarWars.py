@@ -3,6 +3,8 @@ from tkinter import messagebox
 import winsound
 import logging
 
+from random import randrange
+
 from Consts import *
 from Jet import *
 from Enemy import *
@@ -36,11 +38,14 @@ class StarWars:
 
         self.bullet_list = []
         self.enemies_list = []
+        self.bomb_list = []
 
         # Bind key presses to the key_event function
         self.key_event_id = self.root.bind(Consts.StarWars.key_event, self.key_event)
 
         self.move_the_bullet()
+
+        self.move_bombs()
 
         self.create_enemies(1, Consts.Enemy.max_num + 1)
 
@@ -206,66 +211,163 @@ class StarWars:
 
         return False
 
+    def jet_bombed(self, bomb):
+        """
+        checks if jet collide with bomb
+        :param bomb:
+        :return:
+        """
+        try:
+            bomb_x1 = self.canvas.coords(bomb)[0]
+            bomb_y1 = self.canvas.coords(bomb)[1]
+            bomb_x2 = self.canvas.coords(bomb)[2]
+            bomb_y2 = self.canvas.coords(bomb)[3]
+
+            jet_x1 = self.canvas.coords(self.jet())[0]
+            jet_y1 = self.canvas.coords(self.jet())[1]
+            jet_x2 = self.canvas.coords(self.jet())[2]
+            jet_y2 = self.canvas.coords(self.jet())[3]
+            jet_x3 = self.canvas.coords(self.jet())[4]
+            jet_y3 = self.canvas.coords(self.jet())[5]
+
+            # Checks collision of three jet apexes with enemy triangle
+            # the enemy triangle assumed as
+            if bomb_x1 <= jet_x1 <= bomb_x2 and bomb_y1 <= jet_y1 <= bomb_y2 or\
+               bomb_x1 <= jet_x2 <= bomb_x2 and bomb_y1 <= jet_y2 <= bomb_y2 or \
+               bomb_x1 <= jet_x3 <= bomb_x2 and bomb_y1 <= jet_y3 <= bomb_y2:
+                return True
+
+        except Exception as exc_type:
+            logging.exception(f"{type(exc_type).__name__}: {exc_type}")
+
+        return False
+
+    def create_bomb(self):
+        """
+        creates a bomb on apex of random enemy
+        :return:
+        """
+        if len(self.enemies_list) == 0:
+            return 0
+        """
+        i = randrange(len(self.enemies_list))
+        enemy = self.enemies_list[i]
+        """
+        shift = randrange(3)
+        new_list = self.enemies_list[::shift]
+        for enemy in new_list:
+            winsound.PlaySound(Consts.Sound.shoot_file_name, 1)
+
+            new_bomb = self.canvas.create_oval(Consts.Bomb.x0, Consts.Bomb.y0,
+                                               Consts.Bomb.x1, Consts.Bomb.y1,
+                                               fill=Consts.Bomb.color)
+            try:
+                x1 = self.canvas.coords(enemy())[0]
+                y1 = self.canvas.coords(enemy())[1]
+                self.canvas.move(new_bomb, x1, y1)
+                self.bomb_list.append(new_bomb)
+            except Exception as exc_type:
+                logging.exception(f"{type(exc_type).__name__}: {exc_type}")
+
+    def move_bombs(self):
+        """
+                move the bombs dropped from enemy down over the screen
+                :return:
+        """
+        bottom = self.canvas.winfo_height()
+        try:
+            for bomb in self.bomb_list:
+                random = randrange(-Consts.Bomb.random, Consts.Bomb.random)
+                self.canvas.move(bomb, 0, Consts.Bomb.speed + 0)
+
+                if self.jet_bombed(bomb):
+                    winsound.PlaySound(Consts.Sound.jet_injured_file_name, 1)
+                    self.bomb_list.remove(bomb)
+                    self.canvas.delete(bomb)
+                    winsound.PlaySound(Consts.Sound.exploded_file_name, 1)
+                    #   the jet destroyed
+                    self.check_jet_state()
+
+                y1 = self.canvas.coords(bomb)[1]
+                # screen bottom reached
+                if y1 > bottom:
+                    self.bomb_list.remove(bomb)
+                    self.canvas.delete(bomb)
+
+        except Exception as exc_type:
+            logging.exception(f"{type(exc_type).__name__}: {exc_type}")
+
+        # Sleep
+        self.root.after(Consts.Enemy.wait, lambda: self.move_bombs())
+
     def move_enemy(self):
         """
         move enemies horizontally,
         drop down to the next line when the end of the screen reached
         checks collision with other objects
         :return: 0 when the jet destroyed
-
         """
         for enemy in self.enemies_list:
             if self.jet_collided(enemy):
                 winsound.PlaySound(Consts.Sound.jet_injured_file_name, 1)
-                #            the jet destroyed
-                if self.jet.next_color() == -1:
-                    self.clear_screen_objects()
-                    messagebox.showerror(Consts.Jet.collision_title, Consts.Jet.collision_message)
-                    logging.info(Consts.Log.game_over)
-                    return self.callback('jet_collided')
-            try:
-                enemy_x1 = self.canvas.coords(enemy.polygon)[0]
-                # right window corner reached
-                if enemy_x1 >= self.root.winfo_width() - Consts.Others.screen_correction_y:
-                    enemy.direction = -1
-                    self.canvas.move(enemy.polygon, (-Consts.Enemy.speed) - self.level * 2,
-                                     Consts.Enemy.jump)
-                # left window corner reached
-                elif enemy_x1 <= Consts.Others.screen_correction_y:
-                    enemy.direction = 1
-                    self.canvas.move(enemy.polygon, Consts.Enemy.speed + self.level * 2,
-                                     Consts.Enemy.jump)
-                else:
-                    self.canvas.move(enemy.polygon, (Consts.Enemy.speed + self.level * 2)
-                                     * enemy.direction, 0)
+                self.enemies_list.remove(enemy)
+                self.canvas.delete(enemy.polygon)
+                winsound.PlaySound(Consts.Sound.exploded_file_name, 1)
+                #   the jet destroyed
+                self.check_jet_state()
 
-                #  if the winfo_height() returns correct values?
-                #  returns 1 when used immediately after canvas creation,
-                #  instead of real size
-                if self.canvas.winfo_height() > 1:
-                    bottom = self.canvas.winfo_height()
-                else:
-                    bottom = self.root.winfo_screenheight()
+            else:
+                try:
+                    enemy_x1 = self.canvas.coords(enemy.polygon)[0]
+                    # right window corner reached
+                    if enemy_x1 >= self.root.winfo_width() - Consts.Others.screen_correction_y:
+                        enemy.direction = -1
+                        self.canvas.move(enemy.polygon, (-Consts.Enemy.speed) - self.level * 2,
+                                         Consts.Enemy.jump)
+                    # left window corner reached
+                    elif enemy_x1 <= Consts.Others.screen_correction_y:
+                        enemy.direction = 1
+                        self.canvas.move(enemy.polygon, Consts.Enemy.speed + self.level * 2,
+                                         Consts.Enemy.jump)
+                    else:
+                        self.canvas.move(enemy.polygon, (Consts.Enemy.speed + self.level * 2)
+                                         * enemy.direction, 0)
 
-                enemy_y1 = self.canvas.coords(enemy.polygon)[1]
-                # screen bottom reached
-                if enemy_y1 > bottom:
-                    self.clear_screen_objects()
-                    messagebox.showerror(Consts.Enemy.screen_bottom_title,
-                                         Consts.Enemy.screen_bottom_message)
-                    return self.callback("same_level")
+                    #  if the winfo_height() returns correct values?
+                    #  returns 1 when used immediately after canvas creation,
+                    #  instead of real size
+                    if self.canvas.winfo_height() > 1:
+                        bottom = self.canvas.winfo_height()
+                    else:
+                        bottom = self.root.winfo_screenheight()
 
-                if self.died(enemy):
-                    self.enemies_list.remove(enemy)
-                    self.canvas.delete(enemy.polygon)
-                    winsound.PlaySound(Consts.Sound.exploded_file_name, 1)
-            except Exception as exc_type:
-                logging.exception(f"{type(exc_type).__name__}: {exc_type}")
+                    enemy_y1 = self.canvas.coords(enemy.polygon)[1]
+                    # screen bottom reached
+                    if enemy_y1 > bottom:
+                        self.clear_screen_objects()
+                        messagebox.showerror(Consts.Enemy.screen_bottom_title,
+                                             Consts.Enemy.screen_bottom_message)
+                        return self.callback("same_level")
 
-        if len(self.enemies_list) == 0:
-            self.clear_screen_objects()
-            self.callback('next')
+                    if self.died(enemy):
+                        self.enemies_list.remove(enemy)
+                        self.canvas.delete(enemy.polygon)
+                        winsound.PlaySound(Consts.Sound.exploded_file_name, 1)
+
+                        self.create_bomb()
+
+                except Exception as exc_type:
+                    logging.exception(f"{type(exc_type).__name__}: {exc_type}")
+
+            if len(self.enemies_list) == 0:
+                self.clear_screen_objects()
+                self.callback('next')
 
         self.root.after(Consts.Enemy.wait, lambda: self.move_enemy())
 
-
+    def check_jet_state(self):
+        if self.jet.next_color() == -1:
+            self.clear_screen_objects()
+            messagebox.showerror(Consts.Jet.collision_title, Consts.Jet.collision_message)
+            logging.info(Consts.Log.game_over)
+            return self.callback('jet_collided')
